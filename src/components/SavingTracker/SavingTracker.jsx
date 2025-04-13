@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react"
+import html2canvas from "html2canvas"
+import jsPDF from "jspdf"
+import React, { useEffect, useRef, useState } from "react"
 import Calendar from "react-calendar"
 import "react-calendar/dist/Calendar.css"
 
@@ -9,6 +11,8 @@ const SavingTracker = () => {
     const saved = localStorage.getItem("savingsGoals")
     return saved ? JSON.parse(saved) : []
   })
+
+  const exportRef = useRef()
 
   const [newGoal, setNewGoal] = useState({
     goalName: "",
@@ -46,6 +50,18 @@ const SavingTracker = () => {
     const months = Math.ceil(remaining / goal.monthlySavings)
     const percent = Math.min((goal.savedSoFar / goal.targetAmount) * 100, 100)
     return { months, percent }
+  }
+
+  const handleExportPDF = async () => {
+    const input = exportRef.current
+    const canvas = await html2canvas(input)
+    const imgData = canvas.toDataURL("image/png")
+    const pdf = new jsPDF("p", "mm", "a4")
+    const imgProps = pdf.getImageProperties(imgData)
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
+    pdf.save("savings-goals.pdf")
   }
 
   return (
@@ -158,9 +174,12 @@ const SavingTracker = () => {
       </div>
 
       {/* Goal List */}
-      <div className="space-y-6">
+      <div ref={exportRef} className="space-y-6">
         {goals.map((goal, index) => {
           const { months, percent } = calculateProgress(goal)
+          const years = Math.floor(months / 12)
+          const remainingMonths = months % 12
+
           return (
             <div key={index} className="p-4 border rounded-lg shadow-md">
               <h2 className="text-xl font-bold text-gray-800">
@@ -189,11 +208,23 @@ const SavingTracker = () => {
                 ></div>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                {percent.toFixed(1)}% saved — Estimated {months} months left
+                {percent.toFixed(1)}% saved — Estimated{" "}
+                {years > 0 && `${years} years `}
+                {remainingMonths} months left
               </p>
             </div>
           )
         })}
+      </div>
+
+      {/* PDF Export Button */}
+      <div className="flex justify-end mt-4">
+        <button
+          className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700"
+          onClick={handleExportPDF}
+        >
+          📄 Export Goals to PDF
+        </button>
       </div>
 
       {/* 📅 Calendar View */}
