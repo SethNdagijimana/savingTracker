@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react"
+import Calendar from "react-calendar"
+import "react-calendar/dist/Calendar.css"
 
 const currencies = ["RWF", "USD", "EUR"]
 
@@ -47,61 +49,106 @@ const SavingTracker = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-xl rounded-2xl space-y-6">
+    <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-xl rounded-2xl space-y-8">
       <h1 className="text-3xl font-bold text-center text-green-700">
         💰 Multi Goal Savings Tracker
       </h1>
 
+      {/* Input Form */}
       <div className="grid gap-4 md:grid-cols-2">
-        <input
-          type="text"
-          placeholder="Goal Name"
-          className="border rounded px-3 py-2"
-          value={newGoal.goalName}
-          onChange={(e) => setNewGoal({ ...newGoal, goalName: e.target.value })}
-        />
-        <input
-          type="number"
-          placeholder="Target Amount"
-          className="border rounded px-3 py-2"
-          value={newGoal.targetAmount}
-          onChange={(e) =>
-            setNewGoal({ ...newGoal, targetAmount: Number(e.target.value) })
-          }
-        />
-        <input
-          type="number"
-          placeholder="Monthly Savings"
-          className="border rounded px-3 py-2"
-          value={newGoal.monthlySavings}
-          onChange={(e) =>
-            setNewGoal({ ...newGoal, monthlySavings: Number(e.target.value) })
-          }
-        />
-        <input
-          type="number"
-          placeholder="Already Saved"
-          className="border rounded px-3 py-2"
-          value={newGoal.savedSoFar}
-          onChange={(e) =>
-            setNewGoal({ ...newGoal, savedSoFar: Number(e.target.value) })
-          }
-        />
-        <input
-          type="date"
-          className="border rounded px-3 py-2"
-          value={newGoal.deadline}
-          onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
-        />
-        <select
-          className="border rounded px-3 py-2"
-          value={newGoal.currency}
-          onChange={(e) => setNewGoal({ ...newGoal, currency: e.target.value })}
-        >
-          {currencies.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Goal Name
+          </label>
+          <input
+            type="text"
+            className="border rounded px-3 py-2"
+            value={newGoal.goalName}
+            onChange={(e) =>
+              setNewGoal({ ...newGoal, goalName: e.target.value })
+            }
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Target Amount
+          </label>
+          <input
+            type="number"
+            className="border rounded px-3 py-2"
+            value={newGoal.targetAmount}
+            onChange={(e) =>
+              setNewGoal({ ...newGoal, targetAmount: Number(e.target.value) })
+            }
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Monthly Savings
+          </label>
+          <input
+            type="number"
+            className="border rounded px-3 py-2"
+            value={newGoal.monthlySavings}
+            onChange={(e) =>
+              setNewGoal({
+                ...newGoal,
+                monthlySavings: Number(e.target.value)
+              })
+            }
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Already Saved
+          </label>
+          <input
+            type="number"
+            className="border rounded px-3 py-2"
+            value={newGoal.savedSoFar}
+            onChange={(e) =>
+              setNewGoal({
+                ...newGoal,
+                savedSoFar: Number(e.target.value)
+              })
+            }
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Deadline
+          </label>
+          <input
+            type="date"
+            className="border rounded px-3 py-2"
+            value={newGoal.deadline}
+            onChange={(e) =>
+              setNewGoal({ ...newGoal, deadline: e.target.value })
+            }
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Currency
+          </label>
+          <select
+            className="border rounded px-3 py-2"
+            value={newGoal.currency}
+            onChange={(e) =>
+              setNewGoal({ ...newGoal, currency: e.target.value })
+            }
+          >
+            {currencies.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
         <button
           className="md:col-span-2 bg-green-600 text-white rounded px-4 py-2 hover:bg-green-700"
           onClick={addGoal}
@@ -110,6 +157,7 @@ const SavingTracker = () => {
         </button>
       </div>
 
+      {/* Goal List */}
       <div className="space-y-6">
         {goals.map((goal, index) => {
           const { months, percent } = calculateProgress(goal)
@@ -146,6 +194,26 @@ const SavingTracker = () => {
             </div>
           )
         })}
+      </div>
+
+      {/* 📅 Calendar View */}
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-gray-800 mb-2">
+          📅 Deadlines Overview
+        </h2>
+        <Calendar
+          tileContent={({ date, view }) => {
+            if (view === "month") {
+              const formatted = date.toISOString().split("T")[0]
+              const isGoalDate = goals.some(
+                (goal) => goal.deadline === formatted
+              )
+              return isGoalDate ? (
+                <span className="text-green-600">●</span>
+              ) : null
+            }
+          }}
+        />
       </div>
     </div>
   )
