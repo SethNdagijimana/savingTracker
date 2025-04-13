@@ -79,6 +79,7 @@ const SavingTracker = () => {
           <input
             type="text"
             className="border rounded px-3 py-2"
+            placeholder="buy land, car, house ..."
             value={newGoal.goalName}
             onChange={(e) =>
               setNewGoal({ ...newGoal, goalName: e.target.value })
