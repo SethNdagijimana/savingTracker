@@ -19,7 +19,6 @@ const SavingTracker = () => {
     targetAmount: 0,
     monthlySavings: 0,
     savedSoFar: 0,
-    deadline: "",
     currency: "RWF"
   })
 
@@ -40,7 +39,6 @@ const SavingTracker = () => {
       targetAmount: 0,
       monthlySavings: 0,
       savedSoFar: 0,
-      deadline: "",
       currency: "RWF"
     })
   }
@@ -50,6 +48,14 @@ const SavingTracker = () => {
     const months = Math.ceil(remaining / goal.monthlySavings)
     const percent = Math.min((goal.savedSoFar / goal.targetAmount) * 100, 100)
     return { months, percent }
+  }
+
+  const getCompletionDate = (goal) => {
+    const remaining = goal.targetAmount - goal.savedSoFar
+    const months = Math.ceil(remaining / goal.monthlySavings)
+    const now = new Date()
+    now.setMonth(now.getMonth() + months)
+    return now.toLocaleDateString()
   }
 
   const handleExportPDF = async () => {
@@ -137,20 +143,6 @@ const SavingTracker = () => {
 
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 mb-1">
-            Deadline
-          </label>
-          <input
-            type="date"
-            className="border rounded px-3 py-2"
-            value={newGoal.deadline}
-            onChange={(e) =>
-              setNewGoal({ ...newGoal, deadline: e.target.value })
-            }
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label className="text-sm font-medium text-gray-700 mb-1">
             Currency
           </label>
           <select
@@ -197,11 +189,9 @@ const SavingTracker = () => {
                 Already Saved: {goal.savedSoFar.toLocaleString()}{" "}
                 {goal.currency}
               </p>
-              {goal.deadline && (
-                <p className="text-sm text-gray-500">
-                  Deadline: {goal.deadline}
-                </p>
-              )}
+              <p className="text-sm text-gray-500">
+                Estimated Completion Date: {getCompletionDate(goal)}
+              </p>
               <div className="w-full bg-gray-200 rounded-full h-3 mt-2">
                 <div
                   className="bg-green-500 h-3 rounded-full transition-all duration-500"
@@ -231,18 +221,28 @@ const SavingTracker = () => {
       {/* 📅 Calendar View */}
       <div className="mt-10">
         <h2 className="text-xl font-bold text-gray-800 mb-2">
-          📅 Deadlines Overview
+          📅 Estimated Completion Calendar
         </h2>
         <Calendar
           tileContent={({ date, view }) => {
             if (view === "month") {
-              const formatted = date.toISOString().split("T")[0]
-              const isGoalDate = goals.some(
-                (goal) => goal.deadline === formatted
-              )
-              return isGoalDate ? (
-                <span className="text-green-600">●</span>
-              ) : null
+              return goals.map((goal, i) => {
+                const months = Math.ceil(
+                  (goal.targetAmount - goal.savedSoFar) / goal.monthlySavings
+                )
+                const goalDate = new Date()
+                goalDate.setMonth(goalDate.getMonth() + months)
+                const formattedGoalDate = goalDate.toISOString().split("T")[0]
+                const formatted = date.toISOString().split("T")[0]
+                if (formattedGoalDate === formatted) {
+                  return (
+                    <span key={i} className="text-green-600">
+                      ●
+                    </span>
+                  )
+                }
+                return null
+              })
             }
           }}
         />
